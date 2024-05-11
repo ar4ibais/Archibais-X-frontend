@@ -30,7 +30,7 @@ const router = createBrowserRouter([
       { path: "posts/:id", element: <CurrentPost /> },
       { path: "users/:id", element: <UserProfile /> },
       { path: "followers", element: <Followers /> },
-      { path: "followings", element: <Following /> },
+      { path: "following", element: <Following /> },
     ],
   },
 ])
