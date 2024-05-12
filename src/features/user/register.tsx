@@ -1,45 +1,46 @@
-import type React from "react"
+import React, { useState } from "react"
 import { useForm } from "react-hook-form"
-import Input from "../components/input"
+import Input from "../../components/input"
 import { Button, Link } from "@nextui-org/react"
-import { useLazyCurrentQuery, useLoginMutation } from "../app/services/userApi"
-import { useNavigate } from "react-router-dom"
-import { useState } from "react"
-import ErrorMessage from "../components/error-message"
-import { hasErrorField } from "../utils/has-error-field"
+import { useRegisterMutation } from "../../app/services/userApi"
+import { hasErrorField } from "../../utils/has-error-field"
+import ErrorMessage from "../../components/error-message"
+
+type RegisterProps = {
+  email: string
+  password: string
+  name: string
+}
 
 type Props = {
   setSelected: (value: string) => void
 }
 
-type LoginProps = {
-  email: string
-  password: string
-}
-
-const Login: React.FC<Props> = ({ setSelected }) => {
+const Register = ({ setSelected }: Props) => {
   const {
     handleSubmit,
     control,
     formState: { errors },
     // eslint-disable-next-line react-hooks/rules-of-hooks
-  } = useForm<LoginProps>({
+  } = useForm<RegisterProps>({
     mode: "onChange",
     reValidateMode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   })
 
-  const [login, { isLoading }] = useLoginMutation()
-  const navigate = useNavigate()
+  const [register, { isLoading }] = useRegisterMutation()
   const [error, setError] = useState("")
-  const [triggerCurrentQuery] = useLazyCurrentQuery()
+  //   const navigate = useNavigate()
+  //   const [triggerCurrentQuery] = useLazyCurrentQuery()
 
-  const onSubmit = async (data: LoginProps) => {
+  const onSubmit = async (data: RegisterProps) => {
     try {
-      await login(data).unwrap()
+      await register(data).unwrap()
+      setSelected("login")
     } catch (error) {
       if (hasErrorField(error)) {
         setError(error.data.error)
@@ -49,6 +50,13 @@ const Login: React.FC<Props> = ({ setSelected }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <Input
+        control={control}
+        name="name"
+        label="Имя"
+        type="text"
+        required="Обязательное поле"
+      />
       <Input
         control={control}
         name="email"
@@ -65,22 +73,22 @@ const Login: React.FC<Props> = ({ setSelected }) => {
       />
       <ErrorMessage error={error} />
       <p className="text-center text-small">
-        Нет аккаунта?{" "}
+        Уже есть аккаунт?{" "}
         <Link
           size="sm"
           className="cursor-pointer"
-          onPress={() => setSelected("sign-up")}
+          onPress={() => setSelected("login")}
         >
-          Зарегестрируйтесь
+          Войдите
         </Link>
       </p>
       <div className="flex gap-2 justify-end">
         <Button fullWidth color="primary" type="submit" isLoading={isLoading}>
-          Войти
+          Зарегистрироваться
         </Button>
       </div>
     </form>
   )
 }
 
-export default Login
+export default Register

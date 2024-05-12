@@ -1,46 +1,50 @@
-import React, { useState } from "react"
+import type React from "react"
 import { useForm } from "react-hook-form"
-import Input from "../components/input"
+import Input from "../../components/input"
 import { Button, Link } from "@nextui-org/react"
-import { useRegisterMutation } from "../app/services/userApi"
-import { hasErrorField } from "../utils/has-error-field"
-import ErrorMessage from "../components/error-message"
-
-type RegisterProps = {
-  email: string
-  password: string
-  name: string
-}
+import {
+  useLazyCurrentQuery,
+  useLoginMutation,
+} from "../../app/services/userApi"
+import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import ErrorMessage from "../../components/error-message"
+import { hasErrorField } from "../../utils/has-error-field"
 
 type Props = {
   setSelected: (value: string) => void
 }
 
-const Register = ({ setSelected }: Props) => {
+type LoginProps = {
+  email: string
+  password: string
+}
+
+const Login: React.FC<Props> = ({ setSelected }) => {
   const {
     handleSubmit,
     control,
     formState: { errors },
     // eslint-disable-next-line react-hooks/rules-of-hooks
-  } = useForm<RegisterProps>({
+  } = useForm<LoginProps>({
     mode: "onChange",
     reValidateMode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
-      name: "",
     },
   })
 
-  const [register, { isLoading }] = useRegisterMutation()
+  const [login, { isLoading }] = useLoginMutation()
+  const navigate = useNavigate()
   const [error, setError] = useState("")
-  //   const navigate = useNavigate()
-  //   const [triggerCurrentQuery] = useLazyCurrentQuery()
+  const [triggerCurrentQuery] = useLazyCurrentQuery()
 
-  const onSubmit = async (data: RegisterProps) => {
+  const onSubmit = async (data: LoginProps) => {
     try {
-      await register(data).unwrap()
-      setSelected("login")
+      await login(data).unwrap()
+      await triggerCurrentQuery().unwrap()
+      navigate("/")
     } catch (error) {
       if (hasErrorField(error)) {
         setError(error.data.error)
@@ -50,13 +54,6 @@ const Register = ({ setSelected }: Props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <Input
-        control={control}
-        name="name"
-        label="Имя"
-        type="text"
-        required="Обязательное поле"
-      />
       <Input
         control={control}
         name="email"
@@ -73,22 +70,22 @@ const Register = ({ setSelected }: Props) => {
       />
       <ErrorMessage error={error} />
       <p className="text-center text-small">
-        Уже есть аккаунт?{" "}
+        Нет аккаунта?{" "}
         <Link
           size="sm"
           className="cursor-pointer"
-          onPress={() => setSelected("login")}
+          onPress={() => setSelected("sign-up")}
         >
-          Войдите
+          Зарегестрируйтесь
         </Link>
       </p>
       <div className="flex gap-2 justify-end">
         <Button fullWidth color="primary" type="submit" isLoading={isLoading}>
-          Зарегистрироваться
+          Войти
         </Button>
       </div>
     </form>
   )
 }
 
-export default Register
+export default Login
