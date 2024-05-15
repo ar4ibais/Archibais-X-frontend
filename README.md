@@ -8,3 +8,4 @@ Technologies:
 - TypeScript
 - RTK Query
 - Rexux Toolkit
+- React Hook Form
