@@ -25,7 +25,7 @@ import { formatToClientDate } from "../../utils/format-to-client-date"
 import { RiDeleteBinLine } from "react-icons/ri"
 import Typography from "../Typography"
 import MetaInfo from "../meta-info"
-import { FcDislike } from "react-icons/fc"
+import { FcLike } from "react-icons/fc"
 import { MdOutlineFavoriteBorder } from "react-icons/md"
 import { FaRegComment } from "react-icons/fa"
 import ErrorMessage from "../error-message"
@@ -109,6 +109,21 @@ const Card: React.FC<Props> = ({
       }
     }
   }
+
+  const handleClick = async () => {
+    try {
+      likedByUser
+        ? await unlikePost(id).unwrap()
+        : await likePost({ postId: id }).unwrap()
+      await refetchPosts()
+    } catch (error) {
+      if (hasErrorField(error)) {
+        setError(error.data.error)
+      } else {
+        setError(error as string)
+      }
+    }
+  }
   return (
     <NextUICard className="mb-5">
       <CardHeader className="justify-between items-center bg-transparent">
@@ -136,10 +151,10 @@ const Card: React.FC<Props> = ({
       {cardFor !== "comment" && (
         <CardFooter className="gap-3">
           <div className="flex gap-5 items-center">
-            <div>
+            <div onClick={handleClick}>
               <MetaInfo
                 count={likesCount}
-                Icon={likedByUser ? FcDislike : MdOutlineFavoriteBorder}
+                Icon={likedByUser ? FcLike : MdOutlineFavoriteBorder}
               />
             </div>
             <Link to={`/posts/${id}`}>
