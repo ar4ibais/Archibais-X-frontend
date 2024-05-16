@@ -29,6 +29,7 @@ import { FcDislike } from "react-icons/fc"
 import { MdOutlineFavoriteBorder } from "react-icons/md"
 import { FaRegComment } from "react-icons/fa"
 import ErrorMessage from "../error-message"
+import { hasErrorField } from "../../utils/has-error-field"
 
 type Props = {
   avatarUrl: string
@@ -65,6 +66,49 @@ const Card: React.FC<Props> = ({
   const [error, setError] = useState("")
   const navigate = useNavigate()
   const currentUser = useAppSelector(selectCurrent)
+
+  const refetchPosts = async () => {
+    switch (cardFor) {
+      case "post":
+        await triggerAllPosts().unwrap()
+        break
+      case "current-post":
+        await triggerAllPosts().unwrap()
+        break
+      case "comment":
+        await triggerGetPostById(id).unwrap()
+        break
+      default:
+        throw new Error("Неверный аргумент cardFor")
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      switch (cardFor) {
+        case "post":
+          await deletePost(id).unwrap()
+          await refetchPosts()
+          break
+        case "current-post":
+          await deletePost(id).unwrap()
+          navigate(-1)
+          break
+        case "comment":
+          await deleteComment(id).unwrap()
+          await refetchPosts()
+          break
+        default:
+          throw new Error("Неверный аргумент cardFor")
+      }
+    } catch (error) {
+      if (hasErrorField(error)) {
+        setError(error.data.error)
+      } else {
+        setError(error as string)
+      }
+    }
+  }
   return (
     <NextUICard className="mb-5">
       <CardHeader className="justify-between items-center bg-transparent">
@@ -77,7 +121,7 @@ const Card: React.FC<Props> = ({
           />
         </Link>
         {authorId === currentUser?.id && (
-          <div className="cursor-pointer">
+          <div className="cursor-pointer" onClick={handleDelete}>
             {deletePostStatus.isLoading || deleteCommentStatus.isLoading ? (
               <Spinner />
             ) : (
